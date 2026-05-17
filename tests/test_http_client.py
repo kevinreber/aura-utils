@@ -6,7 +6,7 @@ import httpx
 import pytest
 import respx
 
-from aura_utils import AsyncHTTPClient
+from asyncresil import AsyncHTTPClient
 
 URL = "https://api.example.com/"
 

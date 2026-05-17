@@ -1,4 +1,4 @@
-from aura_utils import (
+from asyncresil import (
     AsyncHTTPClient,
     Cache,
     CircuitBreaker,

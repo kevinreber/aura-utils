@@ -1,8 +1,13 @@
-# aura-utils
+# asyncresil
 
 Async resilience utilities for Python services. A small, focused toolkit
 extracted from production code so the same primitives can be shared across
 projects instead of re-implemented per repo.
+
+> The GitHub repo is named `aura-utils` for historical reasons (this library
+> was extracted from the Aura project's `mcp_server/utils/`). The PyPI package
+> and Python module are both `asyncresil` — installed via `pip install asyncresil`
+> and imported as `from asyncresil import …`.
 
 ## Modules
 
@@ -24,8 +29,8 @@ Each layer protects the layers below from unnecessary load.
 ## Install
 
 ```bash
-pip install aura-utils                # core (in-memory cache only)
-pip install 'aura-utils[redis]'       # adds Redis-backed cache
+pip install asyncresil                # core (in-memory cache only)
+pip install 'asyncresil[redis]'       # adds Redis-backed cache
 ```
 
 Requires Python 3.11+.

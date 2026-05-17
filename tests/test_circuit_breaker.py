@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from aura_utils import CircuitBreaker, CircuitBreakerOpen
+from asyncresil import CircuitBreaker, CircuitBreakerOpen
 from fakes import FakeClock
 
 

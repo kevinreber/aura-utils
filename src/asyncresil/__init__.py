@@ -1,9 +1,9 @@
 """Async resilience utilities — circuit breaker, rate limiter, cache, http client."""
 
-from aura_utils.cache import Cache, MemoryCache, RedisCache
-from aura_utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpen
-from aura_utils.http_client import AsyncHTTPClient
-from aura_utils.rate_limiter import TokenBucketRateLimiter
+from asyncresil.cache import Cache, MemoryCache, RedisCache
+from asyncresil.circuit_breaker import CircuitBreaker, CircuitBreakerOpen
+from asyncresil.http_client import AsyncHTTPClient
+from asyncresil.rate_limiter import TokenBucketRateLimiter
 
 __all__ = [
     "AsyncHTTPClient",

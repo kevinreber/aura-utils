@@ -86,7 +86,7 @@ class MemoryCache:
 class RedisCache:
     """Redis-backed cache. Requires the ``redis`` extra.
 
-    Install with ``pip install 'aura-utils[redis]'``. The caller owns the
+    Install with ``pip install 'asyncresil[redis]'``. The caller owns the
     ``redis.asyncio.Redis`` client (auth, pool config, sentinel, cluster, etc.);
     this class only knows how to ``GET`` / ``SET`` / ``DEL`` keys on it.
 
