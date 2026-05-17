@@ -18,4 +18,4 @@ def test_public_api_imports() -> None:
     assert MemoryCache is not None
     assert RedisCache is not None
     assert TokenBucketRateLimiter is not None
-    assert __version__ == "0.0.1"
+    assert __version__ == "0.1.0"
