@@ -3,7 +3,8 @@ name = "aura-utils"
 version = "0.0.1"
 description = "Async resilience utilities — circuit breaker, rate limiter, cache, http client"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Kevin Reber", email = "kevinreber1@gmail.com" }
 ]
@@ -15,7 +16,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Framework :: AsyncIO",
-  "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "httpx>=0.28.1",
