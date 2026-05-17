@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from redis.asyncio import Redis as _AsyncRedis
+
+logger = logging.getLogger(__name__)
 
 
 class Cache(Protocol):
@@ -18,6 +21,14 @@ class Cache(Protocol):
     Values stored via ``set`` must be retrievable via ``get`` until they
     expire (TTL) or are explicitly deleted. Missing or expired keys return
     ``None``.
+
+    .. note::
+
+       ``None`` is reserved as the "missing key" sentinel. Callers should
+       not store ``None`` as a value — a subsequent ``get`` cannot be
+       distinguished from a cache miss. To cache "no result" semantics
+       (negative caching), wrap the value (e.g., ``{"value": None}``) at
+       the call site.
     """
 
     async def get(self, key: str) -> Any | None: ...
@@ -38,6 +49,11 @@ class MemoryCache:
     Stores Python objects by reference — no serialization, so values are
     returned exactly as they were stored (same identity for mutable values).
     Expiry is checked lazily on ``get``; expired entries are evicted then.
+
+    Intended for use within a single asyncio event loop. Not thread-safe:
+    methods are lock-free and rely on asyncio's cooperative scheduling for
+    atomicity, so concurrent access from multiple OS threads can corrupt
+    the internal store.
     """
 
     def __init__(
@@ -78,6 +94,10 @@ class RedisCache:
     JSON-serializable. For cross-backend portability with ``MemoryCache``,
     keep values in the JSON-safe subset (no datetimes, no custom classes,
     no sets) unless you're sure you'll only ever use ``MemoryCache``.
+
+    ``get`` treats malformed JSON content (e.g., from a schema migration or
+    a key collision with another writer) as a cache miss — returns ``None``
+    and logs a warning. Set errors raise.
     """
 
     def __init__(self, *, redis_client: _AsyncRedis) -> None:
@@ -89,11 +109,21 @@ class RedisCache:
             return None
         if isinstance(raw, bytes):
             raw = raw.decode("utf-8")
-        return json.loads(raw)
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            logger.warning("cache miss: non-JSON content at key %r", key)
+            return None
 
     async def set(self, key: str, value: Any, ttl: float | None = None) -> None:
         _validate_ttl(ttl)
-        serialized = json.dumps(value)
+        try:
+            serialized = json.dumps(value)
+        except TypeError as e:
+            raise TypeError(
+                f"RedisCache values must be JSON-serializable; "
+                f"got {type(value).__name__}: {e}"
+            ) from e
         if ttl is None:
             await self._redis.set(key, serialized)
         else:
