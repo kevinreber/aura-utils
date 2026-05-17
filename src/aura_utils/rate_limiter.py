@@ -20,6 +20,11 @@ class TokenBucketRateLimiter:
     Refill is lazy — tokens are computed from elapsed clock time on demand,
     not by a background task.
 
+    Intended for use within a single asyncio event loop. Not thread-safe:
+    ``try_acquire`` is lock-free and relies on asyncio's cooperative scheduling
+    for atomicity, so concurrent access from multiple OS threads (e.g. via
+    ``loop.run_in_executor``) can corrupt state.
+
     The ``clock`` and ``_sleep`` parameters exist so tests can drive time
     deterministically without real ``asyncio.sleep`` calls.
     """
@@ -47,6 +52,9 @@ class TokenBucketRateLimiter:
         self._lock = asyncio.Lock()
 
     def try_acquire(self, tokens: int = 1) -> bool:
+        # No lock acquisition: this method must remain await-free so concurrent
+        # coroutines cannot interleave with its body. Adding any await below
+        # would race with `acquire`'s critical section.
         self._validate_tokens(tokens)
         self._refill()
         if self._tokens >= tokens:
@@ -63,6 +71,9 @@ class TokenBucketRateLimiter:
                     self._tokens -= tokens
                     return
                 wait = (tokens - self._tokens) / self._rate
+            logger.debug(
+                "limiter blocking for %.3fs awaiting %d token(s)", wait, tokens
+            )
             await self._sleep(wait)
 
     def _refill(self) -> None:

@@ -7,23 +7,16 @@ import asyncio
 import pytest
 
 from aura_utils import TokenBucketRateLimiter
-
-
-class FakeClock:
-    """Controllable monotonic clock."""
-
-    def __init__(self, t: float = 0.0) -> None:
-        self.t = t
-
-    def __call__(self) -> float:
-        return self.t
-
-    def advance(self, delta: float) -> None:
-        self.t += delta
+from fakes import FakeClock
 
 
 class FakeSleeper:
-    """Records sleep calls and advances a bound FakeClock by the slept amount."""
+    """Records sleep calls and advances a bound FakeClock by the slept amount.
+
+    Yields to the event loop at the end so concurrent coroutines actually
+    interleave under `asyncio.gather` instead of running to completion one
+    at a time.
+    """
 
     def __init__(self, clock: FakeClock) -> None:
         self.clock = clock
@@ -32,6 +25,7 @@ class FakeSleeper:
     async def __call__(self, delay: float) -> None:
         self.calls.append(delay)
         self.clock.advance(delay)
+        await asyncio.sleep(0)
 
 
 def _new_limiter(

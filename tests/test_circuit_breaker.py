@@ -7,19 +7,7 @@ import asyncio
 import pytest
 
 from aura_utils import CircuitBreaker, CircuitBreakerOpen
-
-
-class FakeClock:
-    """A controllable monotonic clock for tests."""
-
-    def __init__(self, t: float = 0.0) -> None:
-        self.t = t
-
-    def __call__(self) -> float:
-        return self.t
-
-    def advance(self, delta: float) -> None:
-        self.t += delta
+from fakes import FakeClock
 
 
 async def _ok() -> str:
