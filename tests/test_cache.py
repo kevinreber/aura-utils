@@ -9,7 +9,7 @@ import fakeredis
 import fakeredis.aioredis
 import pytest
 
-from aura_utils import Cache, MemoryCache, RedisCache
+from asyncresil import Cache, MemoryCache, RedisCache
 from fakes import FakeClock
 
 if TYPE_CHECKING:
@@ -287,7 +287,7 @@ async def test_redis_malformed_json_logs_warning(
     mock = AsyncMock()
     mock.get.return_value = b"not valid json"
     cache = RedisCache(redis_client=mock)
-    with caplog.at_level(logging.WARNING, logger="aura_utils.cache"):
+    with caplog.at_level(logging.WARNING, logger="asyncresil.cache"):
         await cache.get("k")
     assert any("non-JSON content" in record.message for record in caplog.records)
 

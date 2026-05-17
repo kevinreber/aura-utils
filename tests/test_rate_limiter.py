@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from aura_utils import TokenBucketRateLimiter
+from asyncresil import TokenBucketRateLimiter
 from fakes import FakeClock
 
 

@@ -1,5 +1,5 @@
 [project]
-name = "aura-utils"
+name = "asyncresil"
 version = "0.0.1"
 description = "Async resilience utilities — circuit breaker, rate limiter, cache, http client"
 readme = "README.md"

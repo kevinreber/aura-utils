@@ -29,7 +29,7 @@ wheels = [
 ]
 
 [[package]]
-name = "aura-utils"
+name = "asyncresil"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
