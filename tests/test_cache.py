@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
+import fakeredis
 import fakeredis.aioredis
 import pytest
 
@@ -134,7 +135,9 @@ async def test_memory_invalid_ttl_raises(bad_ttl: float) -> None:
 
 @pytest.fixture
 async def redis_client() -> "_AsyncRedis":
-    return fakeredis.aioredis.FakeRedis()
+    # Per-test FakeServer for isolation — otherwise FakeRedis() instances
+    # share a process-wide default server and tests can leak state.
+    return fakeredis.aioredis.FakeRedis(server=fakeredis.FakeServer())
 
 
 # ---- basic get/set/delete ----
@@ -262,3 +265,38 @@ async def test_redis_decodes_bytes_response() -> None:
     mock.get.return_value = b'"hello"'
     cache = RedisCache(redis_client=mock)
     assert await cache.get("k") == "hello"
+
+
+# ---- malformed content handling ----
+
+
+async def test_redis_malformed_json_returns_none_as_miss() -> None:
+    """A key whose value isn't valid JSON (schema migration, foreign writer)
+    should behave as a cache miss, not crash."""
+    mock = AsyncMock()
+    mock.get.return_value = b"not valid json{{{"
+    cache = RedisCache(redis_client=mock)
+    assert await cache.get("k") is None
+
+
+async def test_redis_malformed_json_logs_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    import logging
+
+    mock = AsyncMock()
+    mock.get.return_value = b"not valid json"
+    cache = RedisCache(redis_client=mock)
+    with caplog.at_level(logging.WARNING, logger="aura_utils.cache"):
+        await cache.get("k")
+    assert any("non-JSON content" in record.message for record in caplog.records)
+
+
+async def test_redis_unserializable_value_raises_with_helpful_message(
+    redis_client: "_AsyncRedis",
+) -> None:
+    from datetime import datetime
+
+    cache = RedisCache(redis_client=redis_client)
+    with pytest.raises(TypeError, match="JSON-serializable"):
+        await cache.set("k", datetime.now())
