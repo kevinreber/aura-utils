@@ -46,7 +46,7 @@ Internal services that need a shared resilience layer:
 
 ## Status
 
-`0.0.1` — early alpha. API is not yet stable.
+`0.1.0` — early alpha. API is not yet stable.
 
 ## License
 
